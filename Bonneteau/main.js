@@ -1,11 +1,11 @@
 Vue.component('shellList', {
     template: `
     <div>
-        <shell ref="shells" class="shell animated" v-for="shell in parseFloat(length)" @onSelect="onShellSelect"></shell>
+        <shell ref="shells" class="shell animated" v-for="shell in shellLength" @onSelect="onShellSelect"></shell>
     </div>    
     `,
     /*check si il y a pas mieux à faire avec le parseFloat*/
-    props: ['length'],
+    props: ['shellLength'],
 
     data() {
         return {
@@ -57,7 +57,7 @@ new Vue({
     el: '#bonneteau',
     template: `
     <div v-if="!loading" class="bonneteau">
-        <shellList length = 3
+        <shellList :shellLength = 3
         @validateSelection = 'validate'
         @shuffleEnd = 'onShuffleEnd'
         ></shellList>
@@ -127,7 +127,7 @@ new Vue({
             this.gameLog = "Mélange";
             window.setTimeout(() => {
                 this.loading = false;
-            }, 0)
+            }, 250)
         }
     }
 })
