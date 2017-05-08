@@ -1,0 +1,136 @@
+html {
+    background: #ece8d9;
+}
+
+div.bonneteau {
+    min-width: 900px;
+    text-align: center;
+    font-size: 50px;
+}
+
+div.bonneteau span.bonneteauLog {
+    min-width: 900px;
+}
+
+div.bonneteau button {
+    font-size: 30px;
+    padding: 5px;
+}
+
+div.bonneteau div.shell {
+    position: relative;
+    display: inline-block;
+    width: 225px;
+    height: 220px;
+    margin: 20px;
+    background-image: url(img/shell.png);
+}
+
+div.bonneteau div.shell.selected {
+    border: 2px solid #000000;
+}
+
+div.bonneteau div.shell.wrong {
+    border: 2px solid red;
+}
+
+div.bonneteau div.shell.correct {
+    border-color: green !important;
+}
+
+div.bonneteau div.shell.animated {
+    animation-duration: 3s;
+}
+
+div.bonneteau div.shell.div.pearled {
+    background-image: url(img/pearl.png);
+}
+
+div.bonneteau div.shell.animated:nth-child(1) {
+    animation-name: firstCardAnimation;
+}
+
+div.bonneteau div.shell.animated:nth-child(2) {
+    animation-name: secondCardAnimation;
+}
+
+div.bonneteau div.shell.animated:nth-child(3) {
+    animation-name: thirdCardAnimation;
+}
+
+@keyframes firstCardAnimation {
+    0% {
+        left: 0px;
+    }
+    12.5% {
+        left: 265px;
+    }
+    25% {
+        left: 510px;
+    }
+    37.5% {
+        left: 265px;
+    }
+    50% {
+        left: 265px;
+    }
+    62.5% {
+        left: 265px;
+    }
+    75% {
+        left: 265px;
+    }
+    100% {
+        left: 0px;
+        z-index: 10;
+    }
+}
+
+@keyframes secondCardAnimation {
+    0% {
+        left: 0px;
+    }
+    12.5% {
+        left: -265px;
+    }
+    25% {
+        left: 0px;
+    }
+    37.5% {
+        left: 265px;
+    }
+    50% {
+        left: -265px;
+    }
+    75% {
+        left: 0px;
+    }
+    100% {
+        left: 0px;
+    }
+}
+
+@keyframes thirdCardAnimation {
+    0% {
+        left: 0px;
+    }
+    12.5% {
+        left: 0px;
+    }
+    25% {
+        left: -510px;
+    }
+    37.5% {
+        left: -510px;
+    }
+    50% {
+        left: 0px;
+    }
+    75% {
+        left: -265px;
+    }
+    100% {
+        left: 0px;
+        z-index: 10;
+    }
+}
