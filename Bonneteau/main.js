@@ -1,44 +1,53 @@
-Vue.component('shellList', {
+var shellList = {
+    components: { shell },
     template: `
-    <div>
-        <shell ref="shells" class="shell animated" v-for="shell in shellLength" @onSelect="onShellSelect"></shell>
-    </div>    
+    <div :class="['bonneteauItem',computedClassName]">
+        <slot></slot>
+    </div>
     `,
-    /*check si il y a pas mieux à faire avec le parseFloat*/
-    props: ['shellLength'],
-
+    computed: {
+        computedClassName() {
+            return {
+                animated: this.isAnimated
+            }
+        }
+    },
     data() {
         return {
-            selectedShell: null,
-            isShuffling: true
+            isAnimated: true
         }
     },
     mounted() {
-        this.$refs.shells[0].$el.addEventListener("animationend", () => {
-            this.isShuffling = false;
-            this.$emit('shuffleEnd');
-        });
-    },
-    methods: {
-        onShellSelect(shell) {
-            if (!this.isShuffling) {
-                this.$emit('validateSelection', this.$refs.shells, shell);
+        this.$el.addEventListener("animationend", () => {
+            /*WIP Call for every child... :( */
+            if (this.isAnimated) {
+                this.isAnimated = false;
+                this.$emit('onAnimationEnded')
             }
-        },
+        });
     }
-});
+}
 
-Vue.component('shell', {
+var shell = {
+    name: "shell",
     template: `
-    <div @click="onClick"  
-    :class="{'selected': isSelected, 
-             'pearled':isPearled,
-             'correct': isSelected && isPearled,
-             'wrong': !isSelected && isPearled 
-            }">
-    </div>
+        <div @click="onClick"  
+        :class="[className, comutedClassName]">
+        </div>
     `,
-
+    props: {
+        className: { type: String, default: 'shell' }
+    },
+    computed: {
+        comutedClassName() {
+            return {
+                selected: this.isSelected,
+                pearled: this.isPearled,
+                correct: this.isSelected && this.isPearled,
+                wrong: !this.isSelected && this.isPearled
+            }
+        }
+    },
     data() {
         return {
             isSelected: false,
@@ -48,51 +57,55 @@ Vue.component('shell', {
     methods: {
         onClick() {
             this.$emit('onSelect', this);
+        },
+        resetState() {
+            this.isSelected = false;
+            this.isPearled = false;
+
         }
     },
-})
+}
 
-
-new Vue({
+var vm = new Vue({
     el: '#bonneteau',
+    components: { shellList, shell },
     template: `
-    <div v-if="!loading" class="bonneteau">
-        <shellList :shellLength = 3
-        @validateSelection = 'validate'
-        @shuffleEnd = 'onShuffleEnd'
-        ></shellList>
-
+    <div class="bonneteau">
+        <shellList ref="shellList" @onAnimationEnded="onShuffleEnded">
+            <shell ref="shells" v-for="shell in length" @onSelect="onShellSelect"></shell>
+        </shellList>
+        
         <span class="bonneteauLog">{{ gameLog }}</span> <br />
-        <button v-if="displayResetButton" @click="reset()" >Recommencer</button>
+        <button v-if="gameOver" @click="reset()" >Recommencer</button>
     </div>
-    <div v-else>Loading...</div>
     `,
-    data: {
-        gameLog: "Mélange",
-        loading: true,
-        gameOver: false,
-        displayResetButton: false
+    props: {
+        length: { type: Number, default: 3 }
     },
 
-    mounted() {
-        /*A revoir aussi. */
-        this.loading = false;
+    data: {
+        gameLog: "Mélange",
+        gameOver: false,
+        isShuffling: true,
+        selectedShell: null,
+        pearledShell: null,
+
     },
 
     methods: {
-        onShuffleEnd() {
-            this.gameLog = "Faites vos jeux";
+        onShuffleEnded() {
+            this.gameLog = 'Faites vos jeux !';
         },
-        validate(shells, selectedShell) {
-            if (!this.gameOver) {
-                this.gameOver = true;
+        onShellSelect(selectedShell) {
+            if (!this.$refs.shellList.animate && !this.selectedShell) {
                 this.gameLog = "Les jeux sont faits !";
+                this.selectedShell = selectedShell;
                 selectedShell.isSelected = true;
-
                 this.getPearledShellIndexPromise().then((res) => {
-                    shells[res].isPearled = true;
-                    this.displayResetButton = true;
-                    this.gameLog = shells.indexOf(selectedShell) === res ? "Gagné!" : "Perdu...";
+                    this.pearledShell = this.$refs.shells[res];
+                    this.pearledShell.isPearled = true;
+                    this.gameLog = this.pearledShell === this.selectedShell ? "Gagné!" : "Perdu...";
+                    this.gameOver = true;
                 })
             }
         },
@@ -120,14 +133,13 @@ new Vue({
             });
         },
         reset() {
-            /*A revoir, je suppose... */
+            this.pearledShell.resetState();
+            this.selectedShell.resetState();
+            this.pearledShell = null;
+            this.selectedShell = null;
             this.gameOver = false;
-            this.loading = true;
-            this.displayResetButton = false;
+            this.$refs.shellList.isAnimated = true;
             this.gameLog = "Mélange";
-            window.setTimeout(() => {
-                this.loading = false;
-            }, 250)
         }
     }
 })
