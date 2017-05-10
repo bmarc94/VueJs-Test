@@ -97,7 +97,7 @@ var vm = new Vue({
             this.gameLog = 'Faites vos jeux !';
         },
         onShellSelect(selectedShell) {
-            if (!this.$refs.shellList.animate && !this.selectedShell) {
+            if (!this.$refs.shellList.isAnimated && !this.selectedShell) {
                 this.gameLog = "Les jeux sont faits !";
                 this.selectedShell = selectedShell;
                 selectedShell.isSelected = true;
