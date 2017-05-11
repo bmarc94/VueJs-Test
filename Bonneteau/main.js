@@ -61,7 +61,6 @@ var shell = {
         resetState() {
             this.isSelected = false;
             this.isPearled = false;
-
         }
     },
 }
@@ -96,42 +95,32 @@ var vm = new Vue({
         onShuffleEnded() {
             this.gameLog = 'Faites vos jeux !';
         },
+
         onShellSelect(selectedShell) {
             if (!this.$refs.shellList.isAnimated && !this.selectedShell) {
                 this.gameLog = "Les jeux sont faits !";
                 this.selectedShell = selectedShell;
                 selectedShell.isSelected = true;
-                this.getPearledShellIndexPromise().then((res) => {
-                    this.pearledShell = this.$refs.shells[res];
-                    this.pearledShell.isPearled = true;
-                    this.gameLog = this.pearledShell === this.selectedShell ? "Gagné!" : "Perdu...";
-                    this.gameOver = true;
+                XMLHttpRequestPromise({
+                    url: "https://www.random.org/integers/?num=1&min=0&max=2&col=1&base=10&format=plain&rnd=new"
+
+                }).then((res) => {
+                    this.validate(parseFloat(res));
+                }).catch(() => {
+                    window.setTimeout(() => {
+                        this.validate(parseFloat(this.localRandom()));
+                    }, 1500)
                 })
             }
         },
-        getPearledShellIndexPromise() {
-            return new window.Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "https://www.random.org/integers/?num=1&min=0&max=2&col=1&base=10&format=plain&rnd=new");
-                xhr.onload = function() {
-                    if (this.status >= 200 && this.status < 300) {
-                        resolve(parseFloat(xhr.response));
-                    } else {
-                        reject({
-                            status: this.status,
-                            statusText: xhr.statusText
-                        });
-                    }
-                };
-                xhr.onerror = function() {
-                    reject({
-                        status: this.status,
-                        statusText: xhr.statusText
-                    });
-                };
-                xhr.send();
-            });
+
+        validate(winShellIndex) {
+            this.pearledShell = this.$refs.shells[winShellIndex];
+            this.pearledShell.isPearled = true;
+            this.gameLog = this.pearledShell === this.selectedShell ? "Gagné!" : "Perdu...";
+            this.gameOver = true;
         },
+
         reset() {
             this.pearledShell.resetState();
             this.selectedShell.resetState();
@@ -140,6 +129,48 @@ var vm = new Vue({
             this.gameOver = false;
             this.$refs.shellList.isAnimated = true;
             this.gameLog = "Mélange";
+        },
+
+        localRandom() {
+            return 0;
         }
     }
 })
+
+/*utils*/
+function XMLHttpRequestPromise(opts) {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open(opts.method || "GET", opts.url);
+        xhr.onload = function() {
+            if (this.status >= 200 && this.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function() {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        if (opts.headers) {
+            Object.keys(opts.headers).forEach(function(key) {
+                xhr.setRequestHeader(key, opts.headers[key]);
+            });
+        }
+        var params = opts.params;
+        // We'll need to stringify if we've been given an object
+        // If we have a string, this is skipped.
+        if (params && typeof params === 'object') {
+            params = Object.keys(params).map(function(key) {
+                return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+            }).join('&');
+        }
+        xhr.send(params);
+    });
+}
